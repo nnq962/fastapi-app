@@ -1,7 +1,7 @@
 # api/v1/schemas/users.py
 from pydantic import BaseModel, EmailStr, Field
 from modules.users.common.user import UserRole
-from core.schemas import SuccessResponse
+from core.schemas import SuccessResponse, ErrorResponse
 
 # -----------------------------
 # Request Schemas
@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
     name: str = Field(..., min_length=10, max_length=255, example="Nguyễn Ngọc Quyết")
     phone: str = Field(..., pattern=r"^\d{10}$", example="0123456789")
     email: EmailStr | None = Field(None, example="nguyenngocquyet@gmail.com")
+    #TODO: sửa trường email này là tự động tạo
     position: str | None = Field(None, min_length=3, max_length=60, example="Dev IT")
 
 # -----------------------------
@@ -32,6 +33,76 @@ class UserData(BaseModel):
 class UserCreateResponse(SuccessResponse[UserData]):
     """Response cho tạo user"""
     pass
+
+# -----------------------------
+# Response Examples
+# -----------------------------
+class UserResponseExamples:
+    """Response examples cho documentation"""
+    
+    SUCCESS_201 = {
+        "description": "User created successfully",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": True,
+                    "message": "User created successfully",
+                    "data": {
+                        "id": "68d8106764888819afe47f30",
+                        "name": "Nguyễn Ngọc Quyết",
+                        "phone": "0123456789",
+                        "email": "nguyenngocquyet@gmail.com",
+                        "position": "Dev IT",
+                        "is_active": True,
+                        "role": "user"
+                    },
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
+    
+    ERROR_400 = {
+        "model": ErrorResponse,
+        "description": "User already exists",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": False,
+                    "message": "User already registered",
+                    "error": {
+                        "code": "USER_EXISTS",
+                        "details": "Phone number 0123456789 is already registered"
+                    },
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
+    
+    ERROR_422 = {
+        "model": ErrorResponse,
+        "description": "Validation error",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": False,
+                    "message": "Validation error",
+                    "error": {
+                        "code": "VALIDATION_ERROR",
+                        "details": [
+                            {
+                                "loc": ["body", "phone"],
+                                "msg": "string does not match regex",
+                                "type": "value_error.str.regex"
+                            }
+                        ]
+                    },
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
 
 # -----------------------------
 # Rebuild Schemas

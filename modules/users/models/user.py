@@ -2,6 +2,7 @@
 from beanie import Document, Indexed
 from pydantic import EmailStr, Field
 from datetime import datetime, timezone
+from typing import Optional
 from modules.users.common.user import UserRole
 
 #------------------------------
@@ -11,7 +12,7 @@ class User(Document):
     name: str
     phone: Indexed(str, unique=True)
     email: Indexed(EmailStr, unique=True)
-    position: str
+    position: Optional[str] = None
     role: UserRole = UserRole.USER
     is_active: bool = True
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

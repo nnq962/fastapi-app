@@ -17,10 +17,12 @@ class SuccessResponse(ApiResponse[T]):
     """Success response template"""
     success: bool = True
 
-class ErrorResponse(ApiResponse[None]):
-    """Error response template"""
+class ErrorResponse(BaseModel):
+    """Error response template - không có data field"""
     success: bool = False
-    data: None = None
+    message: str
+    error: dict
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 # Rebuild schemas
 ApiResponse.model_rebuild()
