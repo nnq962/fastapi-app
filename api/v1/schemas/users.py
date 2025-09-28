@@ -10,8 +10,6 @@ class UserCreate(BaseModel):
     """Schema cho request tạo user"""
     name: str = Field(..., min_length=10, max_length=255, example="Nguyễn Ngọc Quyết")
     phone: str = Field(..., pattern=r"^\d{10}$", example="0123456789")
-    email: EmailStr | None = Field(None, example="nguyenngocquyet@gmail.com")
-    #TODO: sửa trường email này là tự động tạo
     position: str | None = Field(None, min_length=3, max_length=60, example="Dev IT")
 
 # -----------------------------
@@ -22,23 +20,24 @@ class UserData(BaseModel):
     id: str
     name: str
     phone: str
-    email: EmailStr | None
     position: str | None
+    username: str
+    email: EmailStr
     is_active: bool
     role: UserRole
 
 # -----------------------------
-# Response Schemas
+# Create Response Schemas
 # -----------------------------
 class UserCreateResponse(SuccessResponse[UserData]):
     """Response cho tạo user"""
     pass
 
 # -----------------------------
-# Response Examples
+# Create Response Examples
 # -----------------------------
-class UserResponseExamples:
-    """Response examples cho documentation"""
+class UserCreateResponseExamples:
+    """Response examples cho create user"""
     
     SUCCESS_201 = {
         "description": "User created successfully",
@@ -51,7 +50,8 @@ class UserResponseExamples:
                         "id": "68d8106764888819afe47f30",
                         "name": "Nguyễn Ngọc Quyết",
                         "phone": "0123456789",
-                        "email": "nguyenngocquyet@gmail.com",
+                        "username": "quyetnn",
+                        "email": "quyetnn@edulive.net",
                         "position": "Dev IT",
                         "is_active": True,
                         "role": "user"
@@ -105,8 +105,65 @@ class UserResponseExamples:
     }
 
 # -----------------------------
+# List Response Schemas
+# -----------------------------
+class UserListResponse(SuccessResponse[list[UserData]]):
+    """Response cho danh sách user"""
+    pass
+
+# -----------------------------
+# List Response Examples
+# -----------------------------
+class UserListResponseExamples:
+    """Response examples cho lấy user"""
+
+    SUCCESS_200 = {
+        "description": "Users listed successfully",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": True,
+                    "message": "Users listed successfully",
+                    "data": [
+                        {
+                            "id": "68d8106764888819afe47f30",
+                            "name": "Nguyễn Ngọc Quyết",
+                            "phone": "0123456789",
+                            "username": "quyetnn",
+                            "email": "quyetnn@edulive.net",
+                            "position": "Dev IT",
+                            "is_active": True,
+                            "role": "user"
+                        }
+                    ],
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
+
+    ERROR_404 = {
+        "model": ErrorResponse,
+        "description": "User not found",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": False,
+                    "message": "User not found",
+                    "error": {
+                        "code": "USER_NOT_FOUND",
+                        "details": "User with username johndoe was not found"
+                    },
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
+
+# -----------------------------
 # Rebuild Schemas
 # -----------------------------
 UserCreate.model_rebuild()
 UserData.model_rebuild()
 UserCreateResponse.model_rebuild()
+UserListResponse.model_rebuild()
