@@ -124,7 +124,7 @@ async def get_users(
             data=[_to_user_data(user)],
         )
 
-    users = await UserService.list_users()
+    users = await UserService.get_list_users()
     return UserListResponse(
         message="Users listed successfully",
         data=[_to_user_data(user) for user in users],
