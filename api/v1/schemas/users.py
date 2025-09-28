@@ -79,6 +79,24 @@ class UserCreateResponseExamples:
             }
         }
     }
+
+    ERROR_409 = {
+        "model": ErrorResponse,
+        "description": "Unable to generate unique username/email",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": False,
+                    "message": "Unable to generate unique username/email",
+                    "error": {
+                        "code": "USER_USERNAME_CONFLICT",
+                        "details": "Generated username/email already exists. Please retry the request."
+                    },
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
     
     ERROR_422 = {
         "model": ErrorResponse,
@@ -161,9 +179,72 @@ class UserListResponseExamples:
     }
 
 # -----------------------------
+# Delete Response Schemas
+# -----------------------------
+class UserDeleteResponse(SuccessResponse[None]):
+    """Response cho xóa user"""
+    data: None = Field(default=None, exclude=True)
+
+# -----------------------------
+# Delete Response Examples
+# -----------------------------
+class UserDeleteResponseExamples:
+    """Response examples cho xóa user"""
+    
+    SUCCESS_200 = {
+        "description": "User deleted successfully",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": True,
+                    "message": "User deleted successfully",
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
+
+    ERROR_400 = {
+        "model": ErrorResponse,
+        "description": "Request must include id or user_name",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": False,
+                    "message": "Request must include id or user_name",
+                    "error": {
+                        "code": "USER_IDENTIFIER_REQUIRED",
+                        "details": "Provide either id or user_name to delete a user"
+                    },
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
+
+    ERROR_404 = {
+        "model": ErrorResponse,
+        "description": "User with id/username was not found",
+        "content": {
+            "application/json": {
+                "example": {
+                    "success": False,
+                    "message": "User with id/username was not found",
+                    "error": {
+                        "code": "USER_NOT_FOUND",
+                        "details": "User with id/username was not found"
+                    },
+                    "timestamp": "2024-01-01T00:00:00Z"
+                }
+            }
+        }
+    }
+
+# -----------------------------
 # Rebuild Schemas
 # -----------------------------
 UserCreate.model_rebuild()
 UserData.model_rebuild()
 UserCreateResponse.model_rebuild()
 UserListResponse.model_rebuild()
+UserDeleteResponse.model_rebuild()

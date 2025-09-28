@@ -2,6 +2,7 @@
 from typing import List, Optional, Tuple
 from bson import ObjectId
 from bson.errors import InvalidId
+from pymongo.errors import DuplicateKeyError
 from modules.users.models.user import User
 from modules.users.common.user import generate_username_and_email
 
@@ -18,10 +19,38 @@ class UserService:
         position: Optional[str] = None
     ) -> User:
         """Tạo user mới"""
-        username, email = await UserService._generate_unique_username_and_email(name)
+        max_attempts = 20
+        last_error: DuplicateKeyError | None = None
 
-        user = User(name=name, position=position, phone=phone, username=username, email=email)
-        return await user.insert()
+        for _ in range(max_attempts):
+            username, email = await UserService._generate_unique_username_and_email(name)
+
+            user = User(
+                name=name,
+                position=position,
+                phone=phone,
+                username=username,
+                email=email,
+            )
+
+            try:
+                return await user.insert()
+            except DuplicateKeyError as exc:
+                last_error = exc
+
+                if UserService._is_duplicate_on_fields(exc, {"phone"}):
+                    raise
+
+                if not UserService._is_duplicate_on_fields(exc, {"username", "email"}):
+                    raise
+
+                # Khi trùng username/email, retry sinh giá trị mới.
+                continue
+
+        if last_error is not None:
+            raise last_error
+
+        raise RuntimeError("Failed to create user due to unexpected duplicate handling state")
 
     @staticmethod
     async def get_user_by_phone(phone: str) -> Optional[User]:
@@ -68,3 +97,22 @@ class UserService:
 
         email = f"{username}@{domain}"
         return username, email
+
+    @staticmethod
+    async def delete_user(user: User) -> None:
+        """Xóa user khỏi hệ thống."""
+        await user.delete()
+
+    @staticmethod
+    def _is_duplicate_on_fields(error: DuplicateKeyError, fields: set[str]) -> bool:
+        """Kiểm tra DuplicateKeyError có trùng với các field đã cho không."""
+        details = getattr(error, "details", None) or {}
+        key_pattern = details.get("keyPattern") if isinstance(details, dict) else None
+
+        if isinstance(key_pattern, dict):
+            duplicate_fields = {str(key) for key in key_pattern.keys()}
+            if duplicate_fields & fields:
+                return True
+
+        message = str(error)
+        return any(field in message for field in fields)
